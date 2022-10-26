@@ -219,6 +219,13 @@ Parameters:
     Type: String
     Default: ""
     Description: The name of the forwarder bucket to create. If not provided, AWS will generate a unique name.
+  DdRetainForwarderBucket:
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+    Description: Set to true to retain the forwarder bucket when tearing down the Cloudformation stack.
 Conditions:
   IsAWSChina:
     Fn::Equals:
@@ -399,6 +406,10 @@ Conditions:
       - Fn::Equals:
           - Ref: DdForwarderBucketName
           - ""
+  SetDdRetainForwarderBucket:
+    Fn::Equals:
+      - Ref: DdRetainForwarderBucket
+      - true
   SetReservedConcurrentExecutions:
     Fn::Not:
       - Fn::Equals:
@@ -791,6 +802,11 @@ Resources:
   ForwarderBucket:
     Type: AWS::S3::Bucket
     Properties:
+      DeletionPolicy:
+        Fn::If:
+          - SetDdRetainForwarderBucket
+          - Retain
+          - Delete
       BucketName:
         Fn::If:
           - SetDdForwarderBucketName
